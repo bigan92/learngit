@@ -10,7 +10,7 @@ library("dplyr")
 library('e1071') #Naive Bayes classification
 library('mice') # imputation
 library("rpart.plot")
-library("rpart")
+library("rpart") #rpart
 library("caret")
 
 train=read.csv("train.csv",header = TRUE,stringsAsFactors = FALSE)
@@ -39,7 +39,7 @@ ggplot(data=train,aes(x=familyscale,y=Pclass,color=Survived))+
   scale_color_manual(values=c("red", "blue")) + facet_grid(Sex ~ .) +
   ggtitle("family scale, Sex, and Class as Survival Factors") + ylab("Pclass")
 
-##可以看出来large family 不利于生存下来，等级高比等级低生存机会大，
+##可以看出来large family(>4)以及 单身人士不利于生存下来，等级高比等级低生存机会大，
 ##女人比男人大，最大是高阶层女性
 
 #Age 有缺失值 且占比0.2，考虑删除还是填补
@@ -103,6 +103,32 @@ predict_nb_train<-predict(naiveBayesModel,train[,c(3,5,7,8,13)])
 modelaccuracy(predict_nb_train,train)
 # 0.7620651
 ## Build the model#2: Naive Bayes classification - END
+
+##build the model#3 rpart --START
+str(train)
+str(test3)
+rpart_model<-rpart(Survived ~Pclass + Sex + SibSp + Parch + familyscale, data = train,method="exp")
+#drawn the plot of rpart
+rpart.plot(rpart_model)
+
+predict_rpart<-predict(rpart_model,test3,method="exp")
+predict_rpart[predict_rpart>=0.5]<-1
+predict_rpart[predict_rpart<0.5]<-0
+modelaccuracy(predict_rpart,gender_submission)
+#[1] 0.9904306
+#how rpart model fit the train data
+predict_rp_train<-predict(rpart_model,train[,c(3,5,7,8,13)])
+predict_rp_train[predict_rp_train>=0.5]<-1
+predict_rp_train[predict_rp_train<0.5]<-0
+modelaccuracy(predict_rp_train,train)
+# [1] 0.8103255
+solution3<- data.frame(PassengerID = test$PassengerId, Survived = predict_rpart)
+full3=bind_cols(gender_submission,solution3)
+##build the model#3 rpart --END
+
+
+
+
 
 
 
