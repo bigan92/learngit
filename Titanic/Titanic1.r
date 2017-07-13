@@ -107,9 +107,20 @@ modelaccuracy(predict_nb_train,train)
 ##build the model#3 rpart --START
 str(train)
 str(test3)
+
+## rpart.control对树进行一些设置  
+## xval是10折交叉验证  
+## minsplit是最小分支节点数，这里指大于等于20，那么该节点会继续分划下去，否则停止  
+## minbucket：叶子节点最小样本数  
+## maxdepth：树的深度  
+## cp全称为complexity parameter，指某个点的复杂度，对每一步拆分,模型的拟合优度必须提高的程度  
+#ct <- rpart.control(xval=10, minsplit=20, cp=0.1)  
 rpart_model<-rpart(Survived ~Pclass + Sex + SibSp + Parch + familyscale, data = train,method="exp")
 #drawn the plot of rpart
 rpart.plot(rpart_model)
+##also can plot in this way
+plot(rpart_model)
+text(rpart_model,use.n=T,all=T,cex=0.9)
 
 predict_rpart<-predict(rpart_model,test3,method="exp")
 predict_rpart[predict_rpart>=0.5]<-1
@@ -124,6 +135,7 @@ modelaccuracy(predict_rp_train,train)
 # [1] 0.8103255
 solution3<- data.frame(PassengerID = test$PassengerId, Survived = predict_rpart)
 full3=bind_cols(gender_submission,solution3)
+write.csv(full3,"rpart_result.csv")
 ##build the model#3 rpart --END
 
 
