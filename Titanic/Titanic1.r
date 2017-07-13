@@ -14,9 +14,10 @@ library("rpart")
 library("caret")
 
 #calculate the accuracy of the fitted model
-modelaccuracy<- function(rpred,test=test) {
-  result_1 <- test$Survived == rpred
-  sum(result_1) / length(rpred)
+modelaccuracy<- function(rpred,gender_submission) {
+  result_1 <- gender_submission$Survived == rpred
+  accuary<-sum(result_1)/length(rpred)
+  return(accuary)
 }
 
 train=read.csv("train.csv",header = TRUE,stringsAsFactors = FALSE)
@@ -72,7 +73,8 @@ full0=bind_cols(gender_submission,solution3)
 write.csv(full0,file = "C:\\Users\\bigan\\Documents\\Titanic\\pre.csv")
 tab=table(full0$Survived,full0$Survived_pre)
 tab
-(264+144)/nrow(test)
+modelaccuracy(prediction.rfmodel,gender_submission)
+#(264+144)/nrow(test)
 
 #################
 ### Make variables factors into factors
@@ -84,10 +86,15 @@ test[factor_variables] <- lapply(test[factor_variables], function(x) as.factor(x
 
 
 ## Build the model#2: Naive Bayes classification - START
-naiveBayesModel <- naiveBayes(Survived ~ Pclass + Sex + SibSp + Parch + FamilySize + Age, data = train)
+naiveBayesModel <- naiveBayes(Survived ~ Pclass + Sex + SibSp + Parch + familyscale, data = train)
 summary(naiveBayesModel)
 predict.NaiveBayes <- predict(naiveBayesModel,test[,-1])
 
 solution.naiveBayes <- data.frame(PassengerID = test$PassengerId, Survived = predict.NaiveBayes)
 
 ## Build the model#2: Naive Bayes classification - END
+
+
+
+
+
