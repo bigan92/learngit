@@ -13,13 +13,6 @@ library("rpart.plot")
 library("rpart")
 library("caret")
 
-#calculate the accuracy of the fitted model
-modelaccuracy<- function(rpred,gender_submission) {
-  result_1 <- gender_submission$Survived == rpred
-  accuary<-sum(result_1)/length(rpred)
-  return(accuary)
-}
-
 train=read.csv("train.csv",header = TRUE,stringsAsFactors = FALSE)
 test=read.csv("test.csv",header = TRUE,stringsAsFactors = FALSE)
 gender_submission=read.csv("gender_submission.csv",header = TRUE,stringsAsFactors = FALSE)
@@ -68,13 +61,21 @@ prediction.rfmodel[prediction.rfmodel>=0.5]<-1
 prediction.rfmodel[prediction.rfmodel<0.5]<-0
 prediction.rfmodel
 
-solution3 <- data.frame(PassengerID = test$PassengerId, Survived_pre= prediction.rfmodel)
-full0=bind_cols(gender_submission,solution3)
-write.csv(full0,file = "C:\\Users\\bigan\\Documents\\Titanic\\pre.csv")
+solution1 <- data.frame(PassengerID = test$PassengerId, Survived_pre= prediction.rfmodel)
+full0=bind_cols(gender_submission,solution1)
+write.csv(full0,file = "pre.csv")
 tab=table(full0$Survived,full0$Survived_pre)
 tab
+
+#calculate the accuracy of the fitted model
+modelaccuracy<- function(rpred,gender_submission) {
+  result_1 <- gender_submission$Survived == rpred
+  accuary<-sum(result_1)/length(rpred)
+  return(accuary)
+}
+#calculate the fitted randomforest model prediction accuracy
 modelaccuracy(prediction.rfmodel,gender_submission)
-#(264+144)/nrow(test)
+#(264+142)/nrow(test)
 
 #################
 ### Make variables factors into factors
@@ -88,11 +89,23 @@ test[factor_variables] <- lapply(test[factor_variables], function(x) as.factor(x
 ## Build the model#2: Naive Bayes classification - START
 naiveBayesModel <- naiveBayes(Survived ~ Pclass + Sex + SibSp + Parch + familyscale, data = train)
 summary(naiveBayesModel)
-predict.NaiveBayes <- predict(naiveBayesModel,test[,-1])
+test3=test2
+test3$familyscale=test2$SibSp+test2$Parch
 
-solution.naiveBayes <- data.frame(PassengerID = test$PassengerId, Survived = predict.NaiveBayes)
-
+predict.NaiveBayes <- predict(naiveBayesModel,test3)
+solution2<- data.frame(PassengerID = test$PassengerId, Survived = predict.NaiveBayes)
+full2<-bind_cols(gender_submission,solution2)
+write.csv(full2,"NaiveBayes.csv")
+modelaccuracy(predict.NaiveBayes,gender_submission)
+#[1] 0.9282297
+#how NB model fit the train data
+predict_nb_train<-predict(naiveBayesModel,train[,c(3,5,7,8,13)])
+modelaccuracy(predict_nb_train,train)
+# 0.7620651
 ## Build the model#2: Naive Bayes classification - END
+
+
+
 
 
 
