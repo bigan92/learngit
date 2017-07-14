@@ -61,11 +61,9 @@ prediction.rfmodel[prediction.rfmodel>=0.5]<-1
 prediction.rfmodel[prediction.rfmodel<0.5]<-0
 prediction.rfmodel
 
-solution1 <- data.frame(PassengerID = test$PassengerId, Survived_pre= prediction.rfmodel)
-full0=bind_cols(gender_submission,solution1)
-write.csv(full0,file = "pre.csv")
-tab=table(full0$Survived,full0$Survived_pre)
-tab
+solution1 <- data.frame(PassengerID = test$PassengerId, Survived= prediction.rfmodel)
+write.csv(solution1,file = "RandomForest_prediction.csv",row.names = FALSE)
+
 
 #calculate the accuracy of the fitted model
 modelaccuracy<- function(rpred,gender_submission) {
@@ -92,12 +90,15 @@ summary(naiveBayesModel)
 test3=test2
 test3$familyscale=test2$SibSp+test2$Parch
 
-predict.NaiveBayes <- predict(naiveBayesModel,test3)
+predict.NaiveBayes <- predict(naiveBayesModel,as.data.frame(test3))
+predict.NaiveBayes[predict.NaiveBayes=="FALSE"]<-'0'
+predict.NaiveBayes[predict.NaiveBayes=="TRUE"]<-'1'
+levels(predict.NaiveBayes)<-c(0,1)
+
 solution2<- data.frame(PassengerID = test$PassengerId, Survived = predict.NaiveBayes)
-full2<-bind_cols(gender_submission,solution2)
-write.csv(full2,"NaiveBayes.csv")
-modelaccuracy(predict.NaiveBayes,gender_submission)
-#[1] 0.9282297
+write.csv(solution2,"NaiveBayes_prediction.csv",row.names = FALSE)
+#modelaccuracy(predict.NaiveBayes,gender_submission)
+
 #how NB model fit the train data
 predict_nb_train<-predict(naiveBayesModel,train[,c(3,5,7,8,13)])
 modelaccuracy(predict_nb_train,train)
@@ -115,7 +116,7 @@ str(test3)
 ## maxdepth：树的深度  
 ## cp全称为complexity parameter，指某个点的复杂度，对每一步拆分,模型的拟合优度必须提高的程度  
 #ct <- rpart.control(xval=10, minsplit=20, cp=0.1)  
-rpart_model<-rpart(Survived ~Pclass + Sex + SibSp + Parch + familyscale, data = train,method="exp")
+rpart_model<-rpart(Survived ~Pclass + Sex + SibSp + Parch + familyscale, data = train)
 #drawn the plot of rpart
 rpart.plot(rpart_model)
 ##also can plot in this way
@@ -125,7 +126,7 @@ text(rpart_model,use.n=T,all=T,cex=0.9)
 predict_rpart<-predict(rpart_model,test3,method="exp")
 predict_rpart[predict_rpart>=0.5]<-1
 predict_rpart[predict_rpart<0.5]<-0
-modelaccuracy(predict_rpart,gender_submission)
+#modelaccuracy(predict_rpart,gender_submission)
 #[1] 0.9904306
 #how rpart model fit the train data
 predict_rp_train<-predict(rpart_model,train[,c(3,5,7,8,13)])
@@ -134,9 +135,12 @@ predict_rp_train[predict_rp_train<0.5]<-0
 modelaccuracy(predict_rp_train,train)
 # [1] 0.8103255
 solution3<- data.frame(PassengerID = test$PassengerId, Survived = predict_rpart)
-full3=bind_cols(gender_submission,solution3)
-write.csv(full3,"rpart_result.csv")
+write.csv(solution3,"rpart_prediction.csv",row.names = FALSE)
 ##build the model#3 rpart --END
+
+######################
+##considering Age use mice package to imputation
+
 
 
 
