@@ -20,6 +20,10 @@ summary(train)
 full<-bind_rows(train,test)
 train$familyscale=train$SibSp+train$Parch+1
 
+test2=test[,c(2,4,6,7)]
+test3=test2
+test3$familyscale=test2$SibSp+test2$Parch
+
 ##处理数据
 train$Survived <- as.logical(train$Survived)
 # Grab title from passenger names
@@ -52,7 +56,6 @@ vi = varImpPlot(rfmodel)
 vi
 ?varImpPlot
 plot(rfmodel)
-test2=test[,c(2,4,6,7)]
 #View(test2);
 sum(is.na.data.frame(test2))
 prediction.rfmodel <- predict(rfmodel, test2)
@@ -74,21 +77,26 @@ modelaccuracy<- function(rpred,gender_submission) {
 #calculate the fitted randomforest model prediction accuracy
 modelaccuracy(prediction.rfmodel,gender_submission)
 #(264+142)/nrow(test)
+###### consider familyscale in the randomforest model
+rfmodel2<-randomForest(Survived~Pclass+Sex+ SibSp +Parch+familyscale, data = train)
+vi2=varImpPlot(rfmodel2,sort = FALSE)
+?varImpPlot
+vi2
+prediction.rfmodel2 <- predict(rfmodel2, test2)
 
-#################
-### Make variables factors into factors
-factor_variables <- c('PassengerId','Pclass','Sex','Embarked', 'FamilySize')
-train[factor_variables] <- lapply(train[factor_variables], function(x) as.factor(x))
-train$Survived = as.factor(train$Survived)
-test[factor_variables] <- lapply(test[factor_variables], function(x) as.factor(x))
+prediction.rfmodel[prediction.rfmodel>=0.5]<-1
+prediction.rfmodel[prediction.rfmodel<0.5]<-0
+prediction.rfmodel
+
+solution1 <- data.frame(PassengerID = test$PassengerId, Survived= prediction.rfmodel)
+write.csv(solution1,file = "RandomForest_prediction.csv",row.names = FALSE)
 
 
 
 ## Build the model#2: Naive Bayes classification - START
 naiveBayesModel <- naiveBayes(Survived ~ Pclass + Sex + SibSp + Parch + familyscale, data = train)
 summary(naiveBayesModel)
-test3=test2
-test3$familyscale=test2$SibSp+test2$Parch
+
 
 predict.NaiveBayes <- predict(naiveBayesModel,as.data.frame(test3))
 predict.NaiveBayes[predict.NaiveBayes=="FALSE"]<-'0'
