@@ -82,14 +82,13 @@ rfmodel2<-randomForest(Survived~Pclass+Sex+ SibSp +Parch+familyscale, data = tra
 vi2=varImpPlot(rfmodel2,sort = FALSE)
 ?varImpPlot
 vi2
-prediction.rfmodel2 <- predict(rfmodel2, test2)
+prediction.rfmodel2 <- predict(rfmodel2, test3)
+prediction.rfmodel2[prediction.rfmodel2>=0.5]<-1
+prediction.rfmodel2[prediction.rfmodel2<0.5]<-0
+prediction.rfmodel2
 
-prediction.rfmodel[prediction.rfmodel>=0.5]<-1
-prediction.rfmodel[prediction.rfmodel<0.5]<-0
-prediction.rfmodel
-
-solution1 <- data.frame(PassengerID = test$PassengerId, Survived= prediction.rfmodel)
-write.csv(solution1,file = "RandomForest_prediction.csv",row.names = FALSE)
+solution1_1 <- data.frame(PassengerID = test$PassengerId, Survived= prediction.rfmodel2)
+write.csv(solution1_1,file = "RandomForest_prediction2.csv",row.names = FALSE)
 
 
 
